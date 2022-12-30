@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
-public class Pokemon {
+public class Species {
 
     private final int id;
     private final String name;
@@ -19,7 +19,7 @@ public class Pokemon {
     private final String[] abilities = new String[2];
     private String[] heldItems;
 
-    public Pokemon(String input) {
+    public Species(String input) {
         String[] inputSplit = input.split("\\|");
 
         this.id = Integer.parseInt(inputSplit[0].trim());

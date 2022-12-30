@@ -20,7 +20,7 @@ public class Manager {
         types.add(new Type("Normal"));
         types.add(new Type("Fighting"));
         types.add(new Type("Flying"));
-        types.add(new Type("POISON"));
+        types.add(new Type("Poison"));
         types.add(new Type("Ground"));
         types.add(new Type("Rock"));
         types.add(new Type("Bug"));
@@ -94,8 +94,8 @@ public class Manager {
         return players.get(member.getIdLong());
     }
 
-    public static Pokemon getPokemonFromPlayer(String search, Player player) {
-        for (Pokemon pokemon : player.getPokedex()) {
+    public static Species getSpeciesFromPlayer(String search, Player player) {
+        for (Species pokemon : player.getPokedex()) {
             if (pokemon.getName().equalsIgnoreCase(search)) {
                 return pokemon;
             }

@@ -11,7 +11,7 @@ public class Player {
 
     private final String name;
 
-    private final List<Pokemon> pokedex = new ArrayList<>();
+    private final List<Species> pokedex = new ArrayList<>();
 
     public Player(String name, String filename) {
         //Add Player Name
@@ -22,7 +22,7 @@ public class Player {
             Path filePath = Paths.get("G:\\Nintendo DS\\" + name + "\\" + filename);
             List<String> content = Files.readAllLines(filePath);
             for (int i = 2; i < Manager.getDexSize()+2; i++) {
-                pokedex.add(new Pokemon(content.get(i)));
+                pokedex.add(new Species(content.get(i)));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -30,7 +30,7 @@ public class Player {
 
     }
 
-    public List<Pokemon> getPokedex() {
+    public List<Species> getPokedex() {
         return pokedex;
     }
 }

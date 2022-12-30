@@ -2,7 +2,7 @@ package Bot;
 
 import Pokemon.Manager;
 import Pokemon.Player;
-import Pokemon.Pokemon;
+import Pokemon.Species;
 import Pokemon.Type;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -70,7 +70,6 @@ public class Listener extends ListenerAdapter {
                 //Output
 
                     if (effectiveness.containsValue(2)) {
-                        sb.append("**4x** -> ");
                         for (Map.Entry<Type, Integer> entries : effectiveness.entrySet()) {
                             if (entries.getValue() == 2) {
                                 x4.add(entries.getKey().getName());
@@ -80,7 +79,6 @@ public class Listener extends ListenerAdapter {
                 }
 
                 if (effectiveness.containsValue(1)) {
-                    sb.append("**2x** -> ");
                     for (Map.Entry<Type, Integer> entries : effectiveness.entrySet()) {
                         if (entries.getValue() == 1) {
                             x2.add(entries.getKey().getName());
@@ -89,7 +87,6 @@ public class Listener extends ListenerAdapter {
                 }
 
                 if (effectiveness.containsValue(0)) {
-                    sb.append("**1x** -> ");
                     for (Map.Entry<Type, Integer> entries : effectiveness.entrySet()) {
                         if (entries.getValue() == 0) {
                             x1.add(entries.getKey().getName());
@@ -98,7 +95,6 @@ public class Listener extends ListenerAdapter {
                 }
 
                 if (effectiveness.containsValue(-100)) {
-                    sb.append("**0x** -> ");
                     for (Map.Entry<Type, Integer> entries : effectiveness.entrySet()) {
                         if (entries.getValue() == -100) {
                             x0.add(entries.getKey().getName());
@@ -107,7 +103,6 @@ public class Listener extends ListenerAdapter {
                 }
 
                 if (effectiveness.containsValue(-1)) {
-                    sb.append("**0.5x** -> ");
                     for (Map.Entry<Type, Integer> entries : effectiveness.entrySet()) {
                         if (entries.getValue() == -1) {
                             x05.add(entries.getKey().getName());
@@ -117,7 +112,6 @@ public class Listener extends ListenerAdapter {
 
                 if (types.length == 2) {
                     if (effectiveness.containsValue(-2)) {
-                        sb.append("**0.25x** -> ");
                         for (Map.Entry<Type, Integer> entries : effectiveness.entrySet()) {
                             if (entries.getValue() == -2) {
                                 x025.add(entries.getKey().getName());
@@ -125,13 +119,12 @@ public class Listener extends ListenerAdapter {
                         }
                     }
                 }
-
-                sb.append(x4).append("\n");
-                sb.append(x2).append("\n");
-                sb.append(x1).append("\n");
-                sb.append(x0).append("\n");
-                sb.append(x05).append("\n");
-                sb.append(x025).append("\n");
+                if (!x4.isEmpty()) sb.append("**4x** -> ").append(x4).append("\n");
+                if (!x2.isEmpty()) sb.append("**2x** -> ").append(x2).append("\n");
+                if (!x1.isEmpty()) sb.append("**1x** -> ").append(x1).append("\n");
+                if (!x0.isEmpty()) sb.append("**0x** -> ").append(x0).append("\n");
+                if (!x05.isEmpty()) sb.append("**0.5x** -> ").append(x05).append("\n");
+                if (!x025.isEmpty()) sb.append("**0.25x** -> ").append(x025).append("\n");
 
                 e.reply(sb.toString()).setEphemeral(!e.getChannel().getName().equals("bot-spam")).queue();
 
@@ -143,7 +136,7 @@ public class Listener extends ListenerAdapter {
                         Member member = e.getMember();
                         if (member == null) { e.reply("That user is not in the server.").queue(); return; }
                         Player player = Manager.getPlayerFromMember(member);
-                        Pokemon pokemon = Manager.getPokemonFromPlayer(search,player);
+                        Species pokemon = Manager.getSpeciesFromPlayer(search,player);
                         if (pokemon == null) {
                             e.reply("Sorry, I could not find that Pokemon.").queue();
                         } else {
