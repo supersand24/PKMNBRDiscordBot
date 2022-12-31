@@ -21,14 +21,14 @@ public class Listener extends ListenerAdapter {
             case "type-matchup" -> {
                 //Input
                 Type[] types = new Type[e.getOptions().size()];
-                types[0] = Manager.getTypes().get(e.getOptionsByName("primary").get(0).getAsInt());
+                types[0] = Manager.getTypeList().get(e.getOptionsByName("primary").get(0).getAsInt());
                 if (types.length == 2 && e.getOptionsByName("primary").get(0).getAsInt() != e.getOptionsByName("secondary").get(0).getAsInt())
-                    types[1] = Manager.getTypes().get(e.getOptionsByName("secondary").get(0).getAsInt());
+                    types[1] = Manager.getTypeList().get(e.getOptionsByName("secondary").get(0).getAsInt());
 
                 //Initialize Calculations
                 StringBuilder sb = new StringBuilder();
                 HashMap<Type,Integer> effectiveness = new HashMap<>();
-                for (Type type : Manager.getTypes()) {
+                for (Type type : Manager.getTypeList()) {
                     effectiveness.put(type,0);
                 }
                 sb.append("**__Type Matchup for ");
@@ -136,12 +136,12 @@ public class Listener extends ListenerAdapter {
                         Member member = e.getMember();
                         if (member == null) { e.reply("That user is not in the server.").queue(); return; }
                         Player player = Manager.getPlayerFromMember(member);
-                        Species pokemon = Manager.getSpeciesFromPlayer(search,player);
+                        Species pokemon = Manager.getSpeciesByName(search);
                         if (pokemon == null) {
                             e.reply("Sorry, I could not find that Pokemon.").queue();
                         } else {
                             File file = new File("pokemonSprites\\" + pokemon.getName().toUpperCase() + ".png");
-                            e.replyEmbeds(pokemon.toEmbed(member)).addFiles(FileUpload.fromData(file,"pokemon.png")).setEphemeral(!e.getChannel().getName().equals("bot-spam")).queue();
+                            e.replyEmbeds(pokemon.toEmbed(member,0)).addFiles(FileUpload.fromData(file,"pokemon.png")).setEphemeral(!e.getChannel().getName().equals("bot-spam")).queue();
                         }
                     }
                 }

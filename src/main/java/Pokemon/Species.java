@@ -1,84 +1,88 @@
 package Pokemon;
 
-import Bot.Main;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Species {
 
-    private final int id;
+    private final int dexNumber;
     private final String name;
-    private final Type[] types = new Type[2];
-    private final int hp;
-    private final int attack;
-    private final int defense;
-    private final int speed;
-    private final int specialAttack;
-    private final int specialDefense;
-    private final String[] abilities = new String[2];
-    private String[] heldItems;
+    private final List<Type[]> types = new ArrayList<>();
+    private final List<Integer[]> baseStats = new ArrayList<>();
+    private final List<String[]> abilities = new ArrayList<>();
+    private final List<String[]> heldItems = new ArrayList<>();
 
-    public Species(String input) {
+    public Species(String input, int numOfPlayers) {
+        //Split the String
         String[] inputSplit = input.split("\\|");
 
-        this.id = Integer.parseInt(inputSplit[0].trim());
-
+        //Dex Number & Name
+        this.dexNumber = Integer.parseInt(inputSplit[0].trim());
         this.name = inputSplit[1].trim();
 
+        for (int i = 0; i <= numOfPlayers; i++) {
+
+            //Types
+            types.add(new Type[2]);
+
+            //Base Stats
+            switch (Manager.GENERATION) {
+                case 1 -> baseStats.add(new Integer[5]);
+                default -> baseStats.add(new Integer[6]);
+            }
+
+            //Abilities
+            abilities.add(new String[2]);
+
+            //Held Items
+            heldItems.add(new String[5]);
+        }
+    }
+
+    public void updatePlayerData(String input, int playerNum) {
+        String[] inputSplit = input.split("\\|");
+
+        //Types
         String[] typesSplit = inputSplit[2].split("/");
-        this.types[0] = Manager.getTypeByName(typesSplit[0].trim());
+        types.get(playerNum)[0] = Manager.getTypeByName(typesSplit[0].trim());
         if (typesSplit.length == 2) {
-            this.types[1] = Manager.getTypeByName(typesSplit[1].trim());
+            types.get(playerNum)[1] = Manager.getTypeByName(typesSplit[1].trim());
         }
 
-        this.hp = Integer.parseInt(inputSplit[3].trim());
+        //Base Stats
+        baseStats.get(playerNum)[0] = Integer.parseInt(inputSplit[3].trim());
+        baseStats.get(playerNum)[1] = Integer.parseInt(inputSplit[4].trim());
+        baseStats.get(playerNum)[2] = Integer.parseInt(inputSplit[5].trim());
+        baseStats.get(playerNum)[3] = Integer.parseInt(inputSplit[6].trim());
+        baseStats.get(playerNum)[4] = Integer.parseInt(inputSplit[7].trim());
+        baseStats.get(playerNum)[5] = Integer.parseInt(inputSplit[8].trim());
 
-        this.attack = Integer.parseInt(inputSplit[4].trim());
-
-        this.defense = Integer.parseInt(inputSplit[5].trim());
-
-        this.speed = Integer.parseInt(inputSplit[6].trim());
-
-        this.specialAttack = Integer.parseInt(inputSplit[7].trim());
-
-        this.specialDefense = Integer.parseInt(inputSplit[8].trim());
-
-        this.abilities[0] = inputSplit[9].trim();
+        //Abilities
+        abilities.get(playerNum)[0] = inputSplit[9].trim();
         if (!inputSplit[10].trim().equals("-"))
-            this.abilities[1] = inputSplit[10].trim();
-
-        if (inputSplit.length > 11)
-            this.heldItems = inputSplit[11].trim().split(",");
-
+            abilities.get(playerNum)[1] = inputSplit[10].trim();
     }
 
     public String getName() {
         return name;
     }
 
-    @Override
-    public String toString() {
+    public String getTypesAsString(int playerNum) {
         StringBuilder sb = new StringBuilder();
-        sb.append("#").append(id).append(" **__").append(name).append("__** | ").append(types[0].getName());
-        if (types[1] != null) sb.append("/").append(types[1].getName());
-        sb.append("\n**HP**:").append(hp).append(" **ATK**:").append(attack).append(" **DEF**:").append(defense).append("\n");
-        sb.append("**SpATK**:").append(specialAttack).append(" **SpDEF**:").append(specialDefense).append(" **SPD**:").append(speed);
+        sb.append(types.get(playerNum)[0].getName());
+        if (types.get(playerNum)[1] != null) sb.append("/").append(types.get(playerNum)[1].getName());
         return sb.toString();
     }
 
-    public String getTypesAsString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(types[0].getName());
-        if (types[1] != null) sb.append("/").append(types[1].getName());
-        return sb.toString();
-    }
-
-    public MessageEmbed toEmbed(Member member) {
+    public MessageEmbed toEmbed(Member member, int playerNum) {
         EmbedBuilder embed = new EmbedBuilder();
 
-        embed.setTitle("#" + id + " | " + name);
-        embed.setDescription(getTypesAsString());
+        embed.setTitle("#" + dexNumber + " | " + getName());
+        embed.setDescription(getTypesAsString(playerNum));
 
         StringBuilder sb = new StringBuilder();
         sb.append(member.getEffectiveName()).append("'");
@@ -86,24 +90,24 @@ public class Species {
         sb.append(" Game");
         embed.setAuthor(sb.toString(),member.getEffectiveAvatarUrl(),member.getEffectiveAvatarUrl());
 
-        embed.addField("Ability 1",abilities[0],true);
-        if (abilities[1] == null) embed.addField("Ability 2","-",true);
-        else embed.addField("Ability 2",abilities[1],true);
-        if (Manager.GENERATION >= 5) embed.addField("Hidden Ability",abilities[2],true);
+        embed.addField("Ability 1",abilities.get(playerNum)[0],true);
+        if (abilities.get(playerNum)[1] == null) embed.addField("Ability 2","-",true);
+        else embed.addField("Ability 2",abilities.get(playerNum)[1],true);
+        if (Manager.GENERATION >= 5) embed.addField("Hidden Ability",abilities.get(playerNum)[2],true);
         else embed.addBlankField(true);
 
-        embed.addField("Hit Points", String.valueOf(hp),true);
-        embed.addField("Physical Attack", String.valueOf(attack),true);
-        embed.addField("Physical Defense", String.valueOf(defense),true);
-        embed.addField("Speed", String.valueOf(speed),true);
-        embed.addField("Special Attack", String.valueOf(specialAttack),true);
-        embed.addField("Special Defense", String.valueOf(specialDefense),true);
+        embed.addField("Hit Points", String.valueOf(baseStats.get(playerNum)[0]),true);
+        embed.addField("Physical Attack", String.valueOf(baseStats.get(playerNum)[1]),true);
+        embed.addField("Physical Defense", String.valueOf(baseStats.get(playerNum)[2]),true);
+        embed.addField("Speed", String.valueOf(baseStats.get(playerNum)[3]),true);
+        embed.addField("Special Attack", String.valueOf(baseStats.get(playerNum)[4]),true);
+        embed.addField("Special Defense", String.valueOf(baseStats.get(playerNum)[5]),true);
 
         embed.setThumbnail("attachment://pokemon.png");
 
         //Temporary Solution to update scores.
         member.getGuild().getMemberById(262982533157879810L).getUser().openPrivateChannel().queue(privateChannel ->
-                privateChannel.sendMessage(member.getEffectiveName() + " has spent a point to look at a Pokedex Entry for " + name).queue());
+                privateChannel.sendMessage(member.getEffectiveName() + " has spent a point to look at a Pokedex Entry for " + getName() + " #" + dexNumber).queue());
 
         return embed.build();
     }
