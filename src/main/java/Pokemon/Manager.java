@@ -2,6 +2,8 @@ package Pokemon;
 
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.commands.Command;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,16 +11,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class Manager {
 
-    protected static final int GENERATION = 4;
-    private static final String romName = "Platinum.nds";
-    private static final int NUM_OF_PLAYERS = 4;
+    private static final Logger log = LoggerFactory.getLogger(Manager.class);
 
-    private static final HashMap<Long,Player> players = new HashMap<>();
+    protected static final int GENERATION = 4;
+    private static final String romName = "Platinum";
+    protected static final int NUM_OF_PLAYERS = 4;
+
     private static final List<Player> newPlayers = new ArrayList<>();
 
     private static final List<Type> types = new ArrayList<>();
@@ -65,51 +67,65 @@ public class Manager {
                 .addNotEffective(types.get(16)).addSuperEffective(types.get(8)).addNotEffective(types.get(10)).addNotEffective(types.get(12)).addNotEffective(types.get(13)).addNotEffective(types.get(14)).addNotEffective(types.get(15));
 
         //Set up the List of Players
-        newPlayers.add(new Player("Justin","Platinum 3.nds.log"));
-        newPlayers.add(new Player("Harrison","Platinum 3.nds.log"));
-        newPlayers.add(new Player("Tyler","Platinum 3.nds.log"));
-        newPlayers.add(new Player("Hal","Platinum 2.nds.log"));
+        newPlayers.add(new Player("Justin"));
+        newPlayers.add(new Player("Harrison"));
+        newPlayers.add(new Player("Tyler"));
+        newPlayers.add(new Player("Hal"));
 
         //Get Species List from unmodified file.
         try {
-            Path filePath = Paths.get("G:\\Nintendo DS\\" + romName + ".log");
+            Path filePath = Paths.get("G:\\Nintendo DS\\" + romName + ".nds.log");
             List<String> content = Files.readAllLines(filePath);
             for (int i = 2; i < getDexSize()+2; i++) {
-                for (int p = 0; p < NUM_OF_PLAYERS; p++) {
-                    species.add(new Species(content.get(i),p));
-                }
+                species.add(new Species(content.get(i),4));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        //Update each player's species.
-        for (int i = 0; i < NUM_OF_PLAYERS; i++) {
-            System.out.println("---- " + newPlayers.get(i).getName() + " ----");
-            String[] pathnames;
-            File f = new File("G:\\Nintendo DS\\" + newPlayers.get(i).getName());
-            pathnames = f.list();
+        //Update each player's species
+        for (int playerNum = 0; playerNum < NUM_OF_PLAYERS; playerNum++) {
+            System.out.println("---- " + newPlayers.get(playerNum).getName() + " ----");
+            File f = new File("G:\\Nintendo DS\\" + newPlayers.get(playerNum).getName());
+            String[] pathnames = f.list();
             if (pathnames != null) {
+                int logCount = 0;
                 for (String pathname : pathnames) {
-                    if (pathname.endsWith(".log")) {
-                        System.out.println(pathname);
+                    if (pathname.endsWith(".log")) logCount++;
+                }
+                for (int logNum = 0; logNum < logCount; logNum++) {
+                    int mode = 0;
+                    int bookmark = 0;
+                    for (String line : getLogFile(playerNum,logNum)) {
+                        switch (mode) {
+                            case 0 -> {
+                                //Searching for New Mode
+                                switch (line) {
+                                    case "--Pokemon Base Stats & Types--" -> { mode = 1; bookmark = -1; }
+                                    case "--TM Moves--" -> mode = 2;
+                                }
+                            }
+                            case 1 -> {
+                                //Pokemon Editing Mode
+                                if (bookmark <= (getDexSize() - 1)) {
+                                    if (bookmark != -1)
+                                        species.get(bookmark).updatePlayerData(line, playerNum);
+                                    bookmark++;
+                                } else {
+                                    mode = 0;
+                                    bookmark = 0;
+                                }
+                            }
+                            case 2 -> {
+                                //TM Editing Mode
+                                //Support Coming One Day
+                            }
+                        }
+                        if (line.isBlank()) mode = 0;
                     }
                 }
             }
         }
-
-        //players.put(263492434317541386L,new Player("Tyler","Platinum 3.nds.log"));
-        //players.put(286307112072511490L,new Player("Harrison","Platinum 3.nds.log"));
-        //players.put(262982533157879810L,new Player("Justin","Platinum 3.nds.log"));
-        //Player hal = new Player("Hal","Platinum 2.nds.log");
-        //players.put(203470379795087360L,hal);
-        //players.put(1051864624435314688L,hal);
-
-        //players.get(263492434317541386L).loadPokemonFromFile();
-        /*
-        for (Species spe : players.get(263492434317541386L).getPokedex()) {
-            System.out.println(spe.getName());
-        }*/
 
     }
 
@@ -152,7 +168,22 @@ public class Manager {
     }
 
     public static Player getPlayerFromMember(Member member) {
-        return players.get(member.getIdLong());
+        for (Player player : newPlayers) {
+            if (player.getName().equalsIgnoreCase(member.getEffectiveName())) return player;
+        }
+        return null;
     }
-    
+
+    private static List<String> getLogFile(int playerNum, int logLevel) {
+        try {
+            String filePath = "G:\\Nintendo DS\\" + newPlayers.get(playerNum).getName() + "\\" + romName + " " + logLevel + ".nds.log";
+            log.info("Reading " + filePath);
+            List<String> content = Files.readAllLines(Paths.get(filePath));
+            content.set(0,content.get(0).replaceAll("\\p{C}",""));
+            return content;
+        } catch (IOException ex) {                                                                       
+            ex.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
 }

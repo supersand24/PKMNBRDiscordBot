@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Species {
@@ -24,7 +25,7 @@ public class Species {
         this.dexNumber = Integer.parseInt(inputSplit[0].trim());
         this.name = inputSplit[1].trim();
 
-        for (int i = 0; i <= numOfPlayers; i++) {
+        for (int i = 1; i <= numOfPlayers; i++) {
 
             //Types
             types.add(new Type[2]);
@@ -45,12 +46,13 @@ public class Species {
 
     public void updatePlayerData(String input, int playerNum) {
         String[] inputSplit = input.split("\\|");
-
         //Types
         String[] typesSplit = inputSplit[2].split("/");
         types.get(playerNum)[0] = Manager.getTypeByName(typesSplit[0].trim());
         if (typesSplit.length == 2) {
             types.get(playerNum)[1] = Manager.getTypeByName(typesSplit[1].trim());
+        } else {
+            types.get(playerNum)[1] = null;
         }
 
         //Base Stats
